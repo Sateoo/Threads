@@ -21,8 +21,9 @@ namespace salvi.matteo._4h.threads
     /// </summary>
     public partial class MainWindow : Window
     {
-        int _Counter = 0;
-        const int NGIRI = 100;
+        int _Counter = 0; //RMW read modify write non è atomica, l'atomicità permette ad un solo thread alla volta di modifacare l'istruzione
+        const int NGIRI = 1500;
+        object obj = new object(); //creo un oggetto
         public MainWindow()
         {
             InitializeComponent();
@@ -30,7 +31,7 @@ namespace salvi.matteo._4h.threads
 
         private void btnGo_Click(object sender, RoutedEventArgs e)
         {
-            Thread t = new Thread(Incrementa);
+            Thread t = new Thread(Incrementa); //creo un nuovo thread
             t.Start();
         }
 
@@ -39,17 +40,21 @@ namespace salvi.matteo._4h.threads
         {
             for (int i = 0; i < NGIRI; i++)
             {
-                _Counter++;
+                lock(obj)// rendo counter atomico
+                {
+                    _Counter++; 
+                }
+                
 
-                Dispatcher.Invoke
+                Dispatcher.Invoke //serve a far prendere a un altro thread quello che gli serve nel thread, in questo caso, della GUI; ogni volta aggiorna
                 (
-                    () =>
-                    {
+                    () => //lambda expression introdotte in c# 3.0 perchè possono utilizzare più CPU
+                    { 
                         txtCounter1.Text = _Counter.ToString();
                     }
                 );
                 
-                Thread.Sleep(500);
+                Thread.Sleep(1);
             }
         }
     }
